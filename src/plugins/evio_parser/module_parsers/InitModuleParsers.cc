@@ -11,6 +11,7 @@
 #include "ModuleParser_HelicityDecoder.h"
 #include "ModuleParser_MPD.h"
 #include "ModuleParser_VFTDC.h"
+#include "ModuleParser_MOLLERADC.h"
 
 void InitModuleParsers(JApplication* app) {
     // Get the module parsers service
@@ -24,6 +25,7 @@ void InitModuleParsers(JApplication* app) {
     module_parsers_svc->addParser(0xdec, new ModuleParser_HelicityDecoder());
     module_parsers_svc->addParser(3561,  new ModuleParser_MPD());
     module_parsers_svc->addParser(9,     new ModuleParser_VFTDC());
+    module_parsers_svc->addParser(77,    new ModuleParser_MOLLERADC());
 }
 
 #endif

@@ -9,6 +9,7 @@ add_subdirectory(TIScaler)
 add_subdirectory(helicity_decoder)
 add_subdirectory(MPD)
 add_subdirectory(VFTDC)
+add_subdirectory(MOLLERADC)
 
 # Collect all module parser libraries in a single variable that the top-level
 # CMakeLists.txt can link against. When adding a new parser library, extend
@@ -20,6 +21,7 @@ set(MODULE_PARSERS_LIBS
     mpd_parser
     helicity_decoder_parsers
     vftdc_parser
+    molleradc_parser
     PARENT_SCOPE
 )
 
@@ -32,6 +34,7 @@ set(MODULE_PARSERS_INCLUDE_DIRS
     ${MPD_INCLUDE_DIR}
     ${HELDEC_INCLUDE_DIR}
     ${VFTDC_INCLUDE_DIR}
+    ${MOLLERADC_INCLUDE_DIR}
     PARENT_SCOPE
 )
 
@@ -44,7 +47,7 @@ set(MODULE_PARSERS_HEADERS
     ${MPD_PUBLIC_HEADERS}
     ${HELDEC_PUBLIC_HEADERS}
     ${VFTDC_PUBLIC_HEADERS}
+    ${MOLLERADC_PUBLIC_HEADERS}
     PARENT_SCOPE
 )
-
 
