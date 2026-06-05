@@ -30,7 +30,10 @@ void ModuleParser_FADC::parse(std::shared_ptr<evio::BaseStructure> data_block,
     uint32_t timestamp1 = 0;
     uint32_t timestamp2 = 0;
     uint64_t event_number = 0;
+    int block_number = -1;
     int block_nevents = -1;  // -1 indicates no block header processed yet
+    uint32_t type2_triggertime = 0;
+    uint32_t type9_eventnumber = 0;
     uint64_t event_index = 0;
 
     // Map from event_number to EventHits_FADC, used to merge hits from
@@ -50,8 +53,10 @@ void ModuleParser_FADC::parse(std::shared_ptr<evio::BaseStructure> data_block,
             if (data_type == 0) { // Block header
                 block_slot = getBitsInRange(d, 26, 22);
                 module_id = getBitsInRange(d, 21, 18);
+                block_number = getBitsInRange(d, 17, 8);
                 block_nevents = getBitsInRange(d, 7, 0);
-            } else if (data_type == 1) { // Block trailer              
+                LOG_DEBUG(GetLogger()) << "ModuleParser_FADC::DEBUG - data type 0 Block slot = " << block_slot  << "; Module ID = " << module_id << "; Block number = " << block_number << "; Number of block events = " << block_nevents << LOG_END;
+            } else if (data_type == 1) { // Block trailer
                 if (block_nevents != 0) {
                     throw JException(
                         "ModuleParser_FADC::parse: Invalid data format — block trailer word before reading in all events"
@@ -73,7 +78,9 @@ void ModuleParser_FADC::parse(std::shared_ptr<evio::BaseStructure> data_block,
                         eh_slot, block_slot
                     );
                 }
+                type2_triggertime = getBitsInRange(d, 21, 12);
                 trigger_num = getBitsInRange(d, 11, 0);
+                LOG_DEBUG(GetLogger()) << "ModuleParser_FADC::DEBUG - data type 2 Type2 trigger time = " << type2_triggertime << "; Trigger number = " << trigger_num << LOG_END;
 
                 // Compute event number and get or create the hits container
                 event_number = trigger_data.first_event_number + event_index;
@@ -90,6 +97,7 @@ void ModuleParser_FADC::parse(std::shared_ptr<evio::BaseStructure> data_block,
                 timestamp1 = getBitsInRange(d, 23, 0);
                 auto d2 = data_words[++j];
                 timestamp2 = getBitsInRange(d2, 23, 0);
+                LOG_DEBUG(GetLogger()) << "ModuleParser_FADC::DEBUG - data type 3 Time stamp 1 = " << timestamp1  << "; Time stamp 2 = " << timestamp2 << LOG_END;
             } else if (data_type == 4) { // Waveform data
                 if (block_nevents < 0) {
                     throw JException(
@@ -117,6 +125,7 @@ void ModuleParser_FADC::parse(std::shared_ptr<evio::BaseStructure> data_block,
                 uint32_t pulse_number = getBitsInRange(d, 22, 21);
                 uint32_t pulse_integral = getBitsInRange(d, 20, 0);
                 event_hits_map[event_number]->pulse_integrals.push_back(new FADC250HallBPulseIntegralHit(trigger_num, timestamp1, timestamp2, rocid, block_slot, module_id, chan, pulse_number, pulse_integral));
+                LOG_DEBUG(GetLogger()) << "ModuleParser_FADC::DEBUG - data type 7 CHAN = " << chan << "; Pulse number = " << pulse_number << "; Pulse integral = " << pulse_integral << LOG_END;
             } else if (data_type == 8) { // Pulse Time data
                 if (block_nevents < 0) {
                     throw JException(
@@ -129,17 +138,19 @@ void ModuleParser_FADC::parse(std::shared_ptr<evio::BaseStructure> data_block,
                 uint32_t coarse_pulse_time = getBitsInRange(d, 15, 6);
                 uint32_t fine_pulse_time = getBitsInRange(d, 5, 0);
                 event_hits_map[event_number]->pulse_times.push_back(new FADC250HallBPulseTimeHit(trigger_num, timestamp1, timestamp2, rocid, block_slot, module_id, chan, pulse_number, measurement_quality_factor, coarse_pulse_time, fine_pulse_time));
+                LOG_DEBUG(GetLogger()) << "ModuleParser_FADC::DEBUG - data type 8 CHAN = " << chan  << "; Pulse number = " << pulse_number << "; Measurement quality factor = " <<  measurement_quality_factor << "; Coarse pulse time = " <<  coarse_pulse_time << "; Fine pulse time = " <<  fine_pulse_time << LOG_END;
             } else if (data_type == 9) { // Pulse Raw data
                 if (block_nevents < 0) {
                     throw JException(
                         "ModuleParser_FADC::parse: Invalid data format — pulse data word before block & event header"
                     );
                 }
+                type9_eventnumber = getBitsInRange(d, 26, 19);
                 uint32_t chan = getBitsInRange(d, 18, 15);
                 uint32_t pedestal_quality = getBitsInRange(d, 14, 14);
                 uint32_t pedestal_sum = getBitsInRange(d, 13, 0);
 
-                LOG_DEBUG(GetLogger()) << "ModuleParser_FADC::DEBUG - data type 9 CHAN = " << chan  << "; Pedestal quality = " << pedestal_quality<<"; Pedestal sum = "<<pedestal_sum<<LOG_END;
+                LOG_DEBUG(GetLogger()) << "ModuleParser_FADC::DEBUG - data type 9 Type 9 Event Number = " << type9_eventnumber << ";  CHAN = " << chan  << "; Pedestal quality = " << pedestal_quality<<"; Pedestal sum = "<<pedestal_sum<<LOG_END;
                 
                 // Parse pulse data and add to event hits
                 auto hits = parsePulseData(
@@ -160,6 +171,7 @@ void ModuleParser_FADC::parse(std::shared_ptr<evio::BaseStructure> data_block,
                 uint32_t pulse_number = getBitsInRange(d, 22, 21);
                 uint32_t Vmin = getBitsInRange(d, 20, 12);
                 uint32_t Vpeak = getBitsInRange(d, 11, 0);
+                LOG_DEBUG(GetLogger()) << "ModuleParser_FADC::DEBUG - data type 10 CHAN = " << chan << "; Pulse number = " << pulse_number << "; Vmin = "<< Vmin << "; Vpeak = "<< Vpeak << LOG_END;
                 event_hits_map[event_number]->pulse_peaks.push_back(new FADC250HallBPulsePeakHit(trigger_num, timestamp1, timestamp2, rocid, block_slot, module_id, chan, pulse_number, Vmin, Vpeak));
             }
         }

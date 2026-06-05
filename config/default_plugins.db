@@ -4,4 +4,4 @@
 # Example:
 # evio_parser,tracking,monitoring
 
-evio_parser
+evio_parser,evio_processor
