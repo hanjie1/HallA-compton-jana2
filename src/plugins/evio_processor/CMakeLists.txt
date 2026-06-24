@@ -10,7 +10,7 @@ add_jana_plugin(evio_processor
 
 add_jana_plugin(block_processor
     SOURCES
-        InitPlugin.cc
+        InitBlockPlugin.cc
         JBlockProcessor_EVIO.cc
 )
 
