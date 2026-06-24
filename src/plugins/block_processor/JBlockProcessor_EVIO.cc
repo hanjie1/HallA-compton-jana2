@@ -47,13 +47,13 @@ void JBlockProcessor_EVIO::ProcessSequential(const JEvent &block) {
     for (const auto& a_block : m_evio_block_in()) {
 
          auto evio_data_block = a_block->evio_event;
-         block_size = evio_data_block->getLength();
+         block_size = evio_data_block->getHeader()->getLength();
          auto& children = evio_data_block->getChildren();
 
 	 /* trigger bank */
 	 rocid.insert(rocid.end(), 0);
 	 bankid.insert(bankid.end(), 0);
-	 bank_size.insert(bank_size.end(), children.at(0)->getDataLength());
+	 bank_size.insert(bank_size.end(), children.at(0)->getHeader()->getDataLength());
 
          /* ROC bansk */
 	 for (size_t i = 1; i < children.size(); ++i) {
@@ -63,7 +63,7 @@ void JBlockProcessor_EVIO::ProcessSequential(const JEvent &block) {
 	     for( const auto dma : dma_blocks){
                   rocid.insert( rocid.end(), tmp_rocid );
 		  bankid.insert( bankid.end(), dma->getHeader()->getTag() );
-		  bank_size.insert( bank_size.end(), dma->getDataLength() );
+		  bank_size.insert( bank_size.end(), dma->getHeader()->getDataLength() );
 	     } 
          }
 
