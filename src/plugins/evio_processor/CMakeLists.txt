@@ -6,6 +6,7 @@ add_jana_plugin(evio_processor
     SOURCES
         InitPlugin.cc
         JEventProcessor_EVIO.cc
+        JBlockProcessor_EVIO.cc
 )
 
 target_link_libraries(evio_processor
