@@ -45,15 +45,15 @@ void JBlockProcessor_EVIO::ProcessSequential(const JEvent &block) {
     bank_size.clear();
 
     for (const auto& a_block : m_evio_block_in()) {
-         block_size = a_block->getLength();
-   
-         auto evio_data_block = a_block.at(0)->evio_event;
+
+         auto evio_data_block = a_block->evio_event;
+         block_size = evio_data_block->getLength();
          auto& children = evio_data_block->getChildren();
 
 	 /* trigger bank */
 	 rocid.insert(rocid.end(), 0);
 	 bankid.insert(bankid.end(), 0);
-	 bank_size.insert(band_size.end(), children.at(0)->getDataLength());
+	 bank_size.insert(bank_size.end(), children.at(0)->getDataLength());
 
          /* ROC bansk */
 	 for (size_t i = 1; i < children.size(); ++i) {
