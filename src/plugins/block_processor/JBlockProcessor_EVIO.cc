@@ -11,6 +11,8 @@ JBlockProcessor_EVIO::JBlockProcessor_EVIO() {
     SetPrefix("jblockprocessor_evio");            // Set unique prefix for parameters
     SetCallbackStyle(CallbackStyle::ExpertMode);  // Use expert mode for full control
     SetLevel(JEventLevel::Block);                 // Set block level processing
+
+    m_evio_block_in.SetOptional(true);
 }
 
 /**
@@ -43,6 +45,13 @@ void JBlockProcessor_EVIO::ProcessSequential(const JEvent &block) {
     rocid.clear();
     bankid.clear();
     bank_size.clear();
+
+    auto blocks = m_evio_block_in();
+
+    if (blocks.empty()) {
+        LOG << "No EvioEventWrapper in this JEvent" << LOG_END;
+        return;
+    }
 
     for (const auto& a_block : m_evio_block_in()) {
 
