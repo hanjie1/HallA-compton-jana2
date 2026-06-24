@@ -44,10 +44,10 @@ void JBlockProcessor_EVIO::ProcessSequential(const JEvent &block) {
     bankid.clear();
     bank_size.clear();
 
-    for (const auto& a_bank : m_evio_block_in()) {
-         block_size = a_bank->getLength();
+    for (const auto& a_block : m_evio_block_in()) {
+         block_size = a_block->getLength();
    
-         auto evio_data_block = a_bank.at(0)->evio_event;
+         auto evio_data_block = a_block.at(0)->evio_event;
          auto& children = evio_data_block->getChildren();
 
 	 /* trigger bank */
