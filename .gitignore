@@ -25,3 +25,4 @@ evio_processor_hits.txt
 data
 rootfiles
 *.x
+*.swp

@@ -5,6 +5,4 @@
 # The slot and module columns are currently informational (not enforced).
 # They are kept for readability and possible future slot/module filtering.
 # rocid slot  module   bank
-  1      3    250    250
-  1      3    9250   9250
-  1      3    9001   9001 
+  1      12    3564    3564

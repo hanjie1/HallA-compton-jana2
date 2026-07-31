@@ -23,7 +23,12 @@ JBlockProcessor_EVIO::JBlockProcessor_EVIO() {
  */
 void JBlockProcessor_EVIO::Init() {
     LOG << "JBlockProcessor_EVIO::Init" << LOG_END;
-    
+
+    // Open the ROOT output file
+    m_root_output_file = new TFile(m_root_output_filename().c_str(), "RECREATE");
+    if (m_root_output_file == nullptr || m_root_output_file->IsZombie()) {
+        throw JException("Failed to open ROOT output file: " + m_root_output_filename());
+    }
 
     // Create ROOT tree for block size data
     m_block_tree = new TTree("block_tree", "Block sizes");
