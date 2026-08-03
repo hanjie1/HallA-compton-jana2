@@ -64,6 +64,7 @@ public:
         
         // Extract hits from the physics event and set them as outputs
         // These hits will be available to processors at the physics event level
+        child.Insert(new PhysicsEvent(*physics_event));
         physics_event->insertHitsIntoEvent(child);
   
         // Return appropriate result based on whether this is the last physics event

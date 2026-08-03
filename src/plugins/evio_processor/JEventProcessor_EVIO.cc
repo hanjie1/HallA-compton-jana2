@@ -22,6 +22,7 @@ JEventProcessor_EVIO::JEventProcessor_EVIO() {
     m_hallb_pulse_integral_hits_in.SetOptional(true);
     m_hallb_pulse_time_hits_in.SetOptional(true);
     m_hallb_pulse_peak_hits_in.SetOptional(true);
+    m_physics_event_in.SetOptional(true);
 }
 
 /**
@@ -44,12 +45,16 @@ void JEventProcessor_EVIO::Init() {
 
     // Create ROOT tree for waveform data
     m_waveform_tree = new TTree("waveform_tree", "FADC250 Waveform Data (slot, channel, waveform)");
+    m_waveform_tree->Branch("event_number", &ev_event_number);
+    m_waveform_tree->Branch("event_timestamp", &ev_event_timestamp);
     m_waveform_tree->Branch("slot", &ev_slot);
     m_waveform_tree->Branch("chan", &ev_chan);
     m_waveform_tree->Branch("waveform", &ev_waveform);
 
     // Create ROOT tree for pulse data
     m_pulse_tree = new TTree("pulse_tree","FADC250 pulse data(slow, channel, integral, time)");
+    m_pulse_tree->Branch("event_number", &ev_event_number);
+    m_pulse_tree->Branch("event_timestamp", &ev_event_timestamp);
     m_pulse_tree->Branch("integral_sum", &ev_integral_sum);
     m_pulse_tree->Branch("pedestal_sum", &pedestal_sum);
     m_pulse_tree->Branch("coarse_time",&ev_coarse_time);
@@ -62,6 +67,8 @@ void JEventProcessor_EVIO::Init() {
 
     // Create the Helicity Decoder Tree
     m_tree = new TTree("m_tree", "Physics Event Tree");
+    m_tree->Branch("event_number", &ev_event_number);
+    m_tree->Branch("event_timestamp", &ev_event_timestamp);
     m_tree->Branch(
         "heldec",
         &heldec,
@@ -107,6 +114,12 @@ void JEventProcessor_EVIO::Init() {
 void JEventProcessor_EVIO::ProcessSequential(const JEvent &event) {
     
     // Clear previous event data
+    ev_event_number = event.GetEventNumber();
+    ev_event_timestamp = 0;
+    const auto& physics_events = m_physics_event_in();
+    if (!physics_events.empty()) {
+        ev_event_timestamp = physics_events.at(0)->GetEventTimestamp();
+    }
     ev_slot.clear();
     ev_chan.clear();
     ev_waveform.clear();
@@ -416,4 +429,3 @@ void JEventProcessor_EVIO::Finish() {
         m_txt_output_file.close();
     }
 }
-

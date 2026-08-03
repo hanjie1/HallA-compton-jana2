@@ -52,6 +52,24 @@ void EvioEventParser::parse(const JEvent& event, std::vector<PhysicsEvent*>& phy
     }
     physics_events.clear();
     for (auto& [num, pe] : event_map) {
+        if (num < 0 || static_cast<uint64_t>(num) < trigger_data.first_event_number) {
+            throw JException(
+                "EvioEventParser::parse: Physics event number %d is before trigger bank first event number %llu",
+                num,
+                static_cast<unsigned long long>(trigger_data.first_event_number)
+            );
+        }
+
+        uint64_t event_index = static_cast<uint64_t>(num) - trigger_data.first_event_number;
+        if (event_index >= trigger_data.event_timestamps.size()) {
+            throw JException(
+                "EvioEventParser::parse: No EB1 timestamp for physics event number %d at block index %d",
+                num,
+                static_cast<int>(event_index)
+            );
+        }
+
+        pe->SetEventTimestamp(trigger_data.event_timestamps[event_index]);
         physics_events.push_back(pe);
     }
 }
@@ -60,7 +78,7 @@ void EvioEventParser::parse(const JEvent& event, std::vector<PhysicsEvent*>& phy
  * @brief Parse the trigger bank and extract ROC segments
  * 
  * This method parses the trigger bank structure to:
- * 1. Extract the event number from the EB1 segment
+ * 1. Extract the first event number and per-event timestamps from the EB1 segment
  * 2. Collect all ROC segments (UINT32 data type)
  * 3. Validate the number of ROC segments matches the header
  * 
@@ -73,11 +91,21 @@ std::vector<std::shared_ptr<evio::BaseStructure>> EvioEventParser::parseTriggerB
     // Get the number of ROC segments from the header
     int trigger_bank_rocs_count = static_cast<int>(trigger_bank->getHeader()->getNumber());
     auto trigger_bank_children = trigger_bank->getChildren();
+    if (trigger_bank_children.empty()) {
+        throw JException("EvioEventParser::parseTriggerBank: Trigger bank has no EB1 segment");
+    }
     
-    // Extract event number from the first segment (EB1)
+    // Extract first event metadata from the first segment (EB1).
+    // EB1 layout:
+    //   eb1[0]    first event number in the block
+    //   eb1[1...] per-event timestamps for this block
     auto eb1_segment = trigger_bank_children.at(0);
     std::vector<uint64_t> eb1_data = eb1_segment->getULongData();
+    if (eb1_data.size() < 2) {
+        throw JException("EvioEventParser::parseTriggerBank: EB1 segment has %d words, expected at least 2", static_cast<int>(eb1_data.size()));
+    }
     trigger_data.first_event_number = static_cast<uint64_t>(eb1_data[0]);
+    trigger_data.event_timestamps.assign(eb1_data.begin() + 1, eb1_data.end());
     
     // Collect all ROC segments (UINT32 data type)
     std::vector<std::shared_ptr<evio::BaseStructure>> trigger_bank_rocs_data;
@@ -181,4 +209,3 @@ void EvioEventParser::parseROCBanks(const std::vector<std::shared_ptr<evio::Base
         }
     }
 }
-

@@ -2,6 +2,7 @@
 #define _TRIGGER_DATA_H_
 
 #include <cstdint>
+#include <vector>
 
 /**
  * @class TriggerData
@@ -10,6 +11,7 @@
 class TriggerData {
 public:
    uint64_t first_event_number;
+   std::vector<uint64_t> event_timestamps;
 
    TriggerData()
       : first_event_number(0) {}

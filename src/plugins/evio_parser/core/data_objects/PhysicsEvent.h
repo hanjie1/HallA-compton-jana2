@@ -1,6 +1,7 @@
 #ifndef _PHYSICS_EVENT_H_
 #define _PHYSICS_EVENT_H_
 
+#include <cstdint>
 #include <vector>
 #include "EventHits.h"
 
@@ -17,6 +18,7 @@ class PhysicsEvent {
     
 private:
     int event_num;
+    uint64_t event_timestamp;
     std::vector<std::shared_ptr<EventHits>> hits_list;
     
 public:
@@ -25,7 +27,8 @@ public:
      * Initializes event number to -1
      */
     PhysicsEvent()
-        : event_num(-1) {}
+        : event_num(-1),
+          event_timestamp(0) {}
 
     /**
      * @brief Constructor with a single EventHits
@@ -33,7 +36,8 @@ public:
      * @param hits Shared pointer to EventHits containing detector data
      */
     PhysicsEvent(int event_num, std::shared_ptr<EventHits> hits)
-        : event_num(event_num) {
+        : event_num(event_num),
+          event_timestamp(0) {
         hits_list.push_back(std::move(hits));
     }
 
@@ -44,6 +48,15 @@ public:
     int SetEventNumber(int event_num) {
         this->event_num = event_num;
         return this->event_num;
+    }
+
+    uint64_t GetEventTimestamp() const {
+        return event_timestamp;
+    }
+
+    uint64_t SetEventTimestamp(uint64_t event_timestamp) {
+        this->event_timestamp = event_timestamp;
+        return this->event_timestamp;
     }
 
     /**
@@ -63,6 +76,9 @@ public:
      * @param other The target PhysicsEvent to receive the hits
      */
     void insertHitsInto(PhysicsEvent& other) {
+        if (other.GetEventTimestamp() == 0) {
+            other.SetEventTimestamp(event_timestamp);
+        }
         for (auto& hits : hits_list) {
             other.addHits(std::move(hits));
         }

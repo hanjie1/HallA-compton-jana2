@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <JANA/JEventProcessor.h>
+#include "PhysicsEvent.h"
 #include "EventHits_FADC.h"
 #include "FADCScalerHit.h"
 #include "TIScalerHit.h"
@@ -84,6 +85,7 @@ private:
     Input<FADC250HallBPulseIntegralHit> m_hallb_pulse_integral_hits_in {this};
     Input<FADC250HallBPulseTimeHit>    m_hallb_pulse_time_hits_in {this};
     Input<FADC250HallBPulsePeakHit>    m_hallb_pulse_peak_hits_in {this};
+    Input<PhysicsEvent>                m_physics_event_in {this};
 
     /**
      * @brief ROOT output filename parameter
@@ -108,6 +110,8 @@ private:
     Parameter<std::string> m_txt_output_filename {this, "TXT_OUT_FILENAME", "evio_processor_hits.txt", "Output text file name for event hit summaries", true};
 
     // ROOT Tree variables 
+    uint64_t ev_event_number;
+    uint64_t ev_event_timestamp;
     std::vector<uint32_t> ev_slot;
     std::vector<uint32_t> ev_chan;
     std::vector<uint32_t> ev_waveform;
@@ -151,4 +155,3 @@ public:
 };
 
 #endif // _JEventProcessor_EVIO_h_
-
